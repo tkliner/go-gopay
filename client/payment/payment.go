@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	// Definice endpointů pro platby
 	paymentEndpoint = "/api/payments/payment"
 )
 
@@ -25,17 +24,14 @@ type Payment struct {
 	Lang             string    `json:"lang,omitempty"`
 }
 
-// PaymentAPI je rozhraní pro práci s endpointy plateb.
 type PaymentAPI struct {
 	request *request.Request
 }
 
-// NewPaymentsAPI vytvoří novou instanci PaymentsAPI.
 func NewPaymentsAPI(req *request.Request) *PaymentAPI {
 	return &PaymentAPI{request: req}
 }
 
-// CreatePayment volá API pro vytvoření platby.
 func (p *PaymentAPI) CreatePayment(ctx context.Context, payment *Payment) (*PaymentResponse, error) {
 	resp, err := p.request.Do(ctx, "POST", "https://api.gopay.cz/payments/payment", nil)
 	if err != nil {
@@ -45,7 +41,6 @@ func (p *PaymentAPI) CreatePayment(ctx context.Context, payment *Payment) (*Paym
 	return nil, nil
 }
 
-// Get umožňuje volat libovolný endpoint (pro testování).
 func (p *PaymentAPI) Get(ctx context.Context, id int) (*http.Response, error) {
 
 	resp, err := p.request.Get(ctx, fmt.Sprintf("%s/%d", paymentEndpoint, id))

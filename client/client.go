@@ -12,10 +12,8 @@ import (
 	"github.com/tkliner/go-gopay/client/storage/inmemory"
 )
 
-// APIClient je objekt, který se vrací z NewClient.
 type GoPay struct {
 	Payment *payment.PaymentAPI
-	// Další endpointy, např. refunds, atd.
 }
 
 func NewClient(options ...Option) (*GoPay, error) {
@@ -43,7 +41,7 @@ func NewClient(options ...Option) (*GoPay, error) {
 	var finalTransport http.RoundTripper = authTransport
 	if cfg.EnableMetrics {
 		metricsTransport := NewMetricsTransport(authTransport, log)
-		finalTransport = metricsTransport // MetricsTransport obalí AuthTransport
+		finalTransport = metricsTransport
 	}
 
 	finalHTTPClient := &http.Client{
@@ -51,7 +49,6 @@ func NewClient(options ...Option) (*GoPay, error) {
 		Timeout:   cfg.Timeout,
 	}
 
-	// Vytvoříme Request strukturu
 	req := request.NewRequest(finalHTTPClient, cfg.GatewayURL, log)
 
 	return &GoPay{
@@ -60,12 +57,10 @@ func NewClient(options ...Option) (*GoPay, error) {
 }
 
 func NewHTTPClient(cfg *config.Config) *http.Client {
-	// Vytvoříme defaultní http klienta s timeoutem
 	httpClient := &http.Client{
 		Timeout: 30 * cfg.Timeout,
 	}
 
-	// Pokud uživatel poskytl vlastní, použijeme ho
 	if cfg.HTTPClient != nil {
 		httpClient = cfg.HTTPClient
 	}
@@ -82,12 +77,10 @@ func NewTokenStorage(cfg *config.Config) storage.TokenStorage {
 }
 
 func NewLogger(cfg *config.Config) logger.Logger {
-	// Pokud uživatel nastavil vlastní logger, použijeme ho
 	if cfg.Logger != nil {
 		return cfg.Logger
 	}
 
-	// Jinak použijeme výchozí no-op logger
 	return logger.NewNoOpLogger()
 }
 

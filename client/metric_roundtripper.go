@@ -47,7 +47,6 @@ func (rt *MetricsRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 			rt.log.Info(req.Context(), "Trace", "phase", "connect_done", "duration_ms", connectDone.Sub(connectStart).Milliseconds())
 		},
 		GotConn: func(info httptrace.GotConnInfo) {
-			// Zde můžete logovat, zda bylo spojení znovu použito (reused)
 			rt.log.Info(req.Context(), "Trace", "phase", "got_connection", "reused", info.Reused)
 		},
 		GotFirstResponseByte: func() {
@@ -56,7 +55,6 @@ func (rt *MetricsRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 			rt.log.Info(req.Context(), "Trace", "phase", "first_byte", "ttfb_ms", ttfb.Milliseconds())
 		},
 	}
-	// Přidáme trace do kontextu požadavku
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 
 	resp, err := rt.next.RoundTrip(req)
@@ -67,7 +65,6 @@ func (rt *MetricsRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 		statusCode = resp.StatusCode
 	}
 
-	// Měření celkové latence a Time-To-Last-Byte (TTLB)
 	if resp != nil {
 		defer func(start time.Time) {
 			ttlb := time.Since(start)
