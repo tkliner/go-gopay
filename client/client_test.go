@@ -133,4 +133,13 @@ func TestMock( _ *testing.T) {
 	fmt.Println(string(r))
 
 
+
+	cfg := NewConfig(
+		WithGatewayURL("https://gw.sandbox.gopay.com"),
+		WithCredentials(8836046164, "1253288454", "Cdf5ChEA"),
+	)
+
+	client, err := New(cfg, http.DefaultClient)
+
+
 }

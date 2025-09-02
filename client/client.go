@@ -2,100 +2,89 @@ package client
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/tkliner/go-gopay/client/auth"
 	"github.com/tkliner/go-gopay/client/config"
 	"github.com/tkliner/go-gopay/client/logger"
-	"github.com/tkliner/go-gopay/client/payment"
-	"github.com/tkliner/go-gopay/client/request"
-	"github.com/tkliner/go-gopay/client/storage"
-	"github.com/tkliner/go-gopay/client/storage/inmemory"
 )
 
-type GoPay struct {
-	Payment *payment.PaymentAPI
+type Interface interface {
+	Post() *Request
+	Put() *Request
+	Patch() *Request
+	Get() *Request
+	Delete() *Request
 }
 
-func NewClient(options ...Option) (*GoPay, error) {
-	cfg := &config.Config{}
-	for _, option := range options {
-		option(cfg)
+type Client struct {
+	base *url.URL
+	client *http.Client
+	content Content
+
+	authenticator auth.Authenticator
+
+	logger logger.Logger
+}
+
+type Content struct {
+	ContentType string
+}
+
+func NewClient(cfg *config.Config, httpClient *http.Client) (*Client, error) {
+
+	// TODO: make it configurable
+	content := Content{
+		ContentType: "application/json",
 	}
 
-	cfg.SetDefaults()
-
-	if err := cfg.Validate(); err != nil {
+	baseURL, err := createBaseURL(cfg.GatewayURL)
+	if err != nil {
 		return nil, err
 	}
 
-	baseTransport := http.DefaultTransport
-
-	httpClient := NewHTTPClient(cfg)
-	tokenStorage := NewTokenStorage(cfg)
-	log := NewLogger(cfg)
-
-	authenticator := NewAuthenticator(cfg, tokenStorage, httpClient, log)
-	authTransport := NewAuthTransport(authenticator)
-	authTransport.next = baseTransport
-
-	var finalTransport http.RoundTripper = authTransport
-	if cfg.EnableMetrics {
-		metricsTransport := NewMetricsTransport(authTransport, log)
-		finalTransport = metricsTransport
+	c := &Client {
+		base: baseURL,
+		content: content,
+		client: httpClient,
+		logger: cfg.Logger,
 	}
 
-	finalHTTPClient := &http.Client{
-		Transport: finalTransport,
-		Timeout:   cfg.Timeout,
-	}
-
-	req := request.NewRequest(finalHTTPClient, cfg.GatewayURL, log)
-
-	return &GoPay{
-		Payment: payment.NewPaymentsAPI(req),
-	}, nil
+	return c, nil
 }
 
-func NewHTTPClient(cfg *config.Config) *http.Client {
-	httpClient := &http.Client{
-		Timeout: 30 * cfg.Timeout,
-	}
-
-	if cfg.HTTPClient != nil {
-		httpClient = cfg.HTTPClient
-	}
-
-	return httpClient
+func (c *Client) Method(verb string) *Request {
+	return NewRequest(c, c.logger).Method(verb)
 }
 
-func NewTokenStorage(cfg *config.Config) storage.TokenStorage {
-	if cfg.TokenStorage != nil {
-		return cfg.TokenStorage
-	}
-
-	return inmemory.NewInMemoryTokenStorage()
+func (c *Client) Post() *Request {
+	return c.Method(http.MethodPost)
 }
 
-func NewLogger(cfg *config.Config) logger.Logger {
-	if cfg.Logger != nil {
-		return cfg.Logger
-	}
-
-	return logger.NewNoOpLogger()
+func (c *Client) Put() *Request {
+	return c.Method(http.MethodPut)
 }
 
-func NewAuthenticator(cfg *config.Config, ts storage.TokenStorage, httpClient *http.Client, logger logger.Logger) *auth.GopayAuthenticator {
-	return auth.NewGopayAuthenticator(
-		ts,
-		httpClient,
-		cfg,
-		logger,
-	)
+func (c *Client) Patch() *Request {
+	return c.Method(http.MethodPatch)
 }
 
-func NewAuthTransport(authenticator auth.Authenticator) *AuthRoundTripper {
-	return &AuthRoundTripper{
-		next:          http.DefaultTransport,
-		authenticator: authenticator,
+func (c *Client) Get() *Request {
+	return c.Method(http.MethodGet)
+}
+
+func (c *Client) Delete() *Request {
+	return c.Method(http.MethodDelete)
+}
+
+func (c *Client) BaseURL() *url.URL {
+	return c.base
+}
+
+func createBaseURL(gatewayURL string) (*url.URL, error) {
+	parsedURL, err := url.Parse(gatewayURL)
+	if err != nil {
+		return nil, err
 	}
+	return parsedURL, nil
 }

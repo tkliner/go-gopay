@@ -1,7 +1,6 @@
 package config
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/tkliner/go-gopay/client/logger"
@@ -15,19 +14,30 @@ const (
 )
 
 type Config struct {
-	GoId          int64
-	ClientId      string
-	ClientSecret  string
-	GatewayURL    string
-	Scope         TokenScope
-	Language      Language
-	Timeout       time.Duration
-	IsProduction  bool
-	HTTPClient    *http.Client
-	TokenStorage  storage.TokenStorage
-	Logger        logger.Logger
-	EnableMetrics bool
-	AutoRefresh  bool
+	GoId               int64
+	ClientId           string
+	ClientSecret       string
+	GatewayURL         string
+	Scope              TokenScope
+	Language           Language
+	Timeout            time.Duration
+	IsProduction       bool
+	TokenStorage       storage.TokenStorage
+	Logger             logger.Logger
+	EnableMetrics      bool
+	AutoRefresh bool
+}
+
+func NewConfig(opts ...func(c *Config)) *Config {
+	cfg := &Config{}
+
+	for _, option := range opts {
+		option(cfg)
+	}
+
+	cfg.SetDefaults()
+
+	return cfg
 }
 
 type ValidationError struct {
