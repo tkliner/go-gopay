@@ -1,3 +1,4 @@
+// Package inmemory provides an in-memory TokenStorage implementation (default when none is configured).
 package inmemory
 
 import (

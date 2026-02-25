@@ -1,3 +1,4 @@
+// Package auth provides OAuth2 client-credentials authentication for the GoPay API.
 package auth
 
 import (

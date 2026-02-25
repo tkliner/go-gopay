@@ -8,11 +8,13 @@ import (
 	"github.com/tkliner/go-gopay/client/logger"
 )
 
+// MetricsRoundTripper wraps another RoundTripper and logs request metrics (method, path, status, latency) and optional httptrace events.
 type MetricsRoundTripper struct {
 	next http.RoundTripper
 	log  logger.Logger
 }
 
+// NewMetricsTransport returns a MetricsRoundTripper that delegates to next and logs to log.
 func NewMetricsTransport(next http.RoundTripper, log logger.Logger) *MetricsRoundTripper {
 	return &MetricsRoundTripper{
 		next: next,
@@ -20,7 +22,7 @@ func NewMetricsTransport(next http.RoundTripper, log logger.Logger) *MetricsRoun
 	}
 }
 
-// RoundTrip implementuje rozhraní http.RoundTripper.
+// RoundTrip implements http.RoundTripper. It adds client trace hooks and logs metrics after the request.
 func (rt *MetricsRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	var (
 		startTime                 = time.Now()

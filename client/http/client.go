@@ -1,3 +1,4 @@
+// Package http provides HTTP client construction for the GoPay API (OAuth round tripper, optional metrics).
 package http
 
 import (
@@ -11,12 +12,10 @@ import (
 	"github.com/tkliner/go-gopay/client/storage/inmemory"
 )
 
-
+// NewHTTPClient builds an http.Client that adds Bearer token auth to every request and optionally wraps with metrics logging.
 func NewHTTPClient(cfg *config.Config) (*http.Client, error) {
-
-
 	baseTransport := http.DefaultTransport
-	
+
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}

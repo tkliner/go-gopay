@@ -1,3 +1,4 @@
+// Package zap provides a Logger implementation backed by go.uber.org/zap.
 package zap
 
 import (

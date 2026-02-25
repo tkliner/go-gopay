@@ -45,6 +45,7 @@ type GopayAuthenticator struct {
 	cancel       context.CancelFunc
 }
 
+// NewGopayAuthenticator creates an authenticator that obtains and caches OAuth tokens; optionally starts auto-refresh when cfg.AutoRefresh is true.
 func NewGopayAuthenticator(
 	ts storage.TokenStorage,
 	httpClient *http.Client,
@@ -69,6 +70,7 @@ func NewGopayAuthenticator(
 	return a
 }
 
+// GetAccessToken returns a valid access token, from cache or by requesting a new one.
 func (a *GopayAuthenticator) GetAccessToken(ctx context.Context) (string, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -148,6 +150,7 @@ func (a *GopayAuthenticator) requestNewAccessToken(ctx context.Context) (string,
 	return tokenResp.AccessToken, expiresAt, nil
 }
 
+// Status returns the current cached token, its expiration time, and an error if not available.
 func (a *GopayAuthenticator) Status() (string, time.Time, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -160,6 +163,7 @@ func (a *GopayAuthenticator) Status() (string, time.Time, error) {
 	return token, expiresAt, nil
 }
 
+// StartAutoRefresh starts a goroutine that refreshes the token at RefreshInterval until the authenticator is closed.
 func (a *GopayAuthenticator) StartAutoRefresh() {
 	go func() {
 		ticker := time.NewTicker(RefreshInterval)

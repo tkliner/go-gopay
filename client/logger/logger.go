@@ -1,3 +1,4 @@
+// Package logger defines the logging interface used by the client and auth layers.
 package logger
 
 import "context"

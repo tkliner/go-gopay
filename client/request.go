@@ -16,6 +16,7 @@ const (
 	defaultApiPrefix = "api"
 )
 
+// Request builds and executes a single HTTP request against the GoPay API. Use Client.Get(), Post(), etc. to start.
 type Request struct {
 	c          *Client
 	pathPrefix string
@@ -29,6 +30,7 @@ type Request struct {
 	getAccessToken func(ctx context.Context) (string, error)
 }
 
+// NewRequest creates a Request with path prefix derived from the client base URL and "api".
 func NewRequest(c *Client, logger logger.Logger) *Request {
 
 	var pathPrefix string
@@ -56,6 +58,13 @@ func (r *Request) Resource(resource string) *Request {
 	return r
 }
 
+// Body sets the request body. Content-Type is set from the client default (application/json) when body is non-nil.
+func (r *Request) Body(body io.Reader) *Request {
+	r.body = body
+	return r
+}
+
+// Do executes the request and returns a Result. Call Result.Convert() to decode the response body into a struct.
 func (r *Request) Do(ctx context.Context) Result {
 	var result Result
 
@@ -101,10 +110,14 @@ func (r *Request) newHTTPRequest(ctx context.Context) (*http.Request, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new HTTP request: %w", err)
 	}
-
+	if body != nil && r.c.content.ContentType != "" {
+		req.Header.Set("Content-Type", r.c.content.ContentType)
+	}
+	req.Header.Set("Accept", "application/json")
 	return req, nil
-
 }
+
+// URL returns the full request URL (base + api prefix + resource).
 func (r *Request) URL() *url.URL {
 	p := r.pathPrefix
 
@@ -144,6 +157,7 @@ func (r *Request) processResponse(resp *http.Response, req *http.Request) Result
 	return Result{body: body, contentType: contentType, statusCode: resp.StatusCode}
 }
 
+// Result holds the response body, status, and error after Do(). Use Convert() to unmarshal JSON into a struct.
 type Result struct {
 	body        []byte
 	contentType string
@@ -151,7 +165,16 @@ type Result struct {
 	statusCode  int
 }
 
+// Err returns the error from the request (e.g. non-2xx status).
+func (r Result) Err() error { return r.err }
+
+// Convert unmarshals the response body into obj. Returns the request error if the request failed.
 func (r Result) Convert(obj any) error {
-	if len(r.body) > 0 {return json.Unmarshal(r.body, obj)}
+	if r.err != nil {
+		return r.err
+	}
+	if len(r.body) > 0 {
+		return json.Unmarshal(r.body, obj)
+	}
 	return nil
 }

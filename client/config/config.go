@@ -1,3 +1,4 @@
+// Package config provides configuration and option constructors for the GoPay client.
 package config
 
 import (
@@ -8,11 +9,13 @@ import (
 )
 
 const (
-	// Výchozí hodnoty
+	// DefaultLanguage is the default payment gateway language (Czech).
 	DefaultLanguage = "cs"
-	DefaultTimeout  = 30 * time.Second
+	// DefaultTimeout is the default HTTP client timeout.
+	DefaultTimeout = 30 * time.Second
 )
 
+// Config holds GoPay client settings: credentials, gateway URL, token scope, logger, and optional token storage.
 type Config struct {
 	GoId               int64
 	ClientId           string
@@ -28,6 +31,7 @@ type Config struct {
 	AutoRefresh bool
 }
 
+// NewConfig builds a Config by applying the given option functions, then SetDefaults().
 func NewConfig(opts ...func(c *Config)) *Config {
 	cfg := &Config{}
 
@@ -40,6 +44,7 @@ func NewConfig(opts ...func(c *Config)) *Config {
 	return cfg
 }
 
+// ValidationError is returned when required config fields are missing or invalid.
 type ValidationError struct {
 	Message string
 }
@@ -48,6 +53,7 @@ func (e *ValidationError) Error() string {
 	return e.Message
 }
 
+// Validate checks that GoId, ClientId, ClientSecret, and GatewayURL are set.
 func (c *Config) Validate() error {
 	if c.GoId == 0 {
 		return &ValidationError{Message: "GoId is a mandatory parameter and cannot be zero"}
@@ -64,6 +70,7 @@ func (c *Config) Validate() error {
 	return nil
 }
 
+// SetDefaults fills in default Scope, Language, and Timeout when not set.
 func (c *Config) SetDefaults() {
 	if c.Scope == "" {
 		c.Scope = TokenScopeAll

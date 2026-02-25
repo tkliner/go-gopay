@@ -1,11 +1,12 @@
+// Package storage defines the token storage interface used by the auth layer.
 package storage
 
 import "time"
 
-// TokenStorage definuje rozhraní pro ukládání a načítání přístupových tokenů.
+// TokenStorage is the interface for storing and retrieving OAuth access tokens.
 type TokenStorage interface {
-	// SaveAccessToken uloží přístupový token s danou dobou platnosti.
+	// SaveAccessToken stores the access token and its expiration time.
 	SaveAccessToken(token string, expiresAt time.Time) error
-	// GetAccessToken načte uložený přístupový token.
+	// GetAccessToken returns the stored access token and expiration time.
 	GetAccessToken() (string, time.Time, error)
 }

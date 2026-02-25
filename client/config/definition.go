@@ -1,11 +1,16 @@
 package config
 
+// TokenScope is the OAuth scope for the access token.
 type TokenScope string
+
+// Language is the payment gateway language code.
 type Language string
 
 const (
+	// TokenScopeCreatePayment allows only creating payments.
 	TokenScopeCreatePayment TokenScope = "payment-create"
-	TokenScopeAll           TokenScope = "payment-all"
+	// TokenScopeAll allows all payment API operations (get, refund, capture, etc.).
+	TokenScopeAll TokenScope = "payment-all"
 
 	// Czech language code
 	CZECH Language = "CS"
